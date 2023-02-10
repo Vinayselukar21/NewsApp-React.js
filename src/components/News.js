@@ -5,6 +5,7 @@ import Spinner from "./Spinner";
 
 import InfiniteScroll from "react-infinite-scroll-component";
 
+let displayUnit = "";
 export class News extends Component {
   static defaultProps = {
     country: "in",
@@ -34,7 +35,8 @@ export class News extends Component {
   }
 
   async updateNews() {
-    this.props.setProgress(10);
+    try {
+      this.props.setProgress(10);
     const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${this.props.apiKey}&page=${this.state.page}&pageSize=${this.props.pageSize}`;
     this.props.setProgress(50);
     this.setState({ loading: true });
@@ -48,8 +50,34 @@ export class News extends Component {
       totalResults: parsedData.totalResults,
       loading: false,
     });
-
+    displayUnit= <div className="row">
+    {this.state.articles.map((element) => {
+      return (
+        <div className="col-md-4" key={element.url}>
+          <NewsItem
+            title={element.title}
+            description={element.description}
+            imageUrl={element.urlToImage}
+            newsUrl={element.url}
+            author={element.author}
+            date={element.publishedAt}
+            source={element.source.name}
+          ></NewsItem>
+        </div>
+      );
+    })}
+  </div>
     this.props.setProgress(100);
+    }
+    catch(err) {
+      console.log(err);
+      this.setState({loading:false})
+      displayUnit = <div>
+        <h1 className="text-center">Something went wrong!</h1>
+        <h3 className="text-center">Unable to fetch data</h3>
+      </div>
+      this.props.setProgress(100);
+    }
   }
 
   async componentDidMount() {
@@ -101,23 +129,7 @@ export class News extends Component {
           loader={<Spinner></Spinner>}
         >
           <div className="container">
-            <div className="row">
-              {this.state.articles.map((element) => {
-                return (
-                  <div className="col-md-4" key={element.url}>
-                    <NewsItem
-                      title={element.title}
-                      description={element.description}
-                      imageUrl={element.urlToImage}
-                      newsUrl={element.url}
-                      author={element.author}
-                      date={element.publishedAt}
-                      source={element.source.name}
-                    ></NewsItem>
-                  </div>
-                );
-              })}
-            </div>
+            {displayUnit}
           </div>
         </InfiniteScroll>
       </>
